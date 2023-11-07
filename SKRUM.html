@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Index</title>
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      form {
+        text-align: center;
+      }
+      div {
+        display: inline-block;
+      }
+      div label {
+        display: block;
+      }
+      input {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Lipuntarkastus</h3>
+    <form id="tunnus">
+      <div>
+        <label for="käyttäjätunnus">Käyttäjätunnus:</label>
+        <input
+          type="text"
+          id="käyttäjätunnus"
+          placeholder="admin"
+          value="scanner"
+        />
+      </div>
+      <div>
+        <label for="salasana">Salasana:</label>
+        <input type="text" id="salasana" placeholder="admin" value="scanner" />
+      </div>
+      <br /><br />
+      <button type="button" onclick="getToken()">Kirjaudu</button><br /><br />
+    </form>
+
+    <form id="lippu"  style="display: none;">
+      <div>
+        <label for="lipunID">Lipun ID:</label>
+        <input type="text" id="lipunID" value="EVT-2-1698595259570" />
+      </div>
+      <button type="button" onclick="getTicket()">Hae lippu</button>
+      <br /><br />
+
+      <div
+        id="lippu-on"
+        style="display: none; font-size: 24px; margin-top: 10px"
+      >
+        <button type="button" onclick="checkTicket()">Check</button>
+      </div>
+
+      <div
+        id="lippu-ok"
+        style="display: none; font-size: 24px; margin-top: 10px"
+      >
+        Lippu tarkistettu
+      </div>
+    </form>
+  </body>
+</html>
+<script>
+  var tokenData;
+  let bearerToken;
+  let lippuId;
+
+  function getToken() {
+    tokenData = {
+      user: document.getElementById("käyttäjätunnus").value,
+      password: document.getElementById("salasana").value,
+    };
+    if (tokenData) {
+      document.getElementById("tunnus").style.display = "none";
+      document.getElementById("lippu").style.display = "block";
+    } else {
+      document.getElementById("tunnus").style.display = "block";
+      document.getElementById("lippu").style.display = "none";
+    }
+    console.log(JSON.stringify(tokenData));
+
+    fetch(`http://ticketguru-ticketmaster.rahtiapp.fi/api/auth/login`, {
+      method: "POST",
+      body: JSON.stringify(tokenData),
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+          console.log("Palautuskoodi:", response.status);
+        } else {
+          throw new Error("Virheellinen vastaus API:sta");
+        }
+      })
+      .then((data) => {
+        bearertoken = data.token;
+      })
+      .catch((error) => {
+        console.error("Virhe:", error);
+      });
+  }
+
+  function getTicket() {
+    console.log("tokeni: ", bearerToken);
+    lippuId = document.getElementById("lipunID").value;
+    const url = `http://ticketguru-ohjelmistoprojekti.rahtiapp.fi/api/tickets/${lippuId}`;
+
+    fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${bearertoken}`,
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          document.getElementById("lippu-on").style.display = "block";
+          return response.json();
+        } else {
+          throw new Error("Virheellinen vastaus API:sta");
+        }
+      })
+      .then((data) => {
+        console.log("Lipputiedot:", data);
+      })
+      .catch((error) => {
+        console.error("Virhe:", error);
+      });
+  }
+
+  function checkTicket() {
+    console.log(bearerToken);
+    console.log(lippuId);
+
+    const url = `http://ticketguru-ohjelmistoprojekti.rahtiapp.fi/api/tickets/${lippuId}/check`;
+
+    fetch(url, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${bearertoken}`,
+      },
+    })
+      .then((response) => {
+        console.log("Palautuskoodi:", response.status);
+        if (response.ok) {
+          document.getElementById("lippu-ok").style.display = "block";
+          return response.json();
+        } else {
+          throw new Error("Virheellinen vastaus API:sta");
+        }
+      })
+      .catch((error) => {
+        console.error("Virhe:", error);
+      });
+    setTimeout(() => {
+      document.getElementById("lipunID").value = "";
+      document.getElementById("lippu-ok").style.display = "none";
+    }, 5000);
+  }
+</script>
