@@ -116,7 +116,11 @@
       },
     })
       .then((response) => {
-        if (response.ok) {
+        if (response.status === 404) {
+          document.getElementById("tiedot").innerHTML = "Lippua ei löytynyt";
+          document.getElementById("tiedot").style.display = "block";
+          throw new Error("Lippua ei löytynyt");
+        } else if (response.ok) {
           document.getElementById("lippu-on").style.display = "block";
           return response.json();
         } else {
