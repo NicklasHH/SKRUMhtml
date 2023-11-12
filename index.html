@@ -61,6 +61,7 @@
   let bearerToken;
   let lippuId;
   let tokenData;
+  let ticketCode;
 
   function getToken() {
     tokenData = {
@@ -142,6 +143,7 @@
           Code: data.code,
         };
         let htmlContent = "";
+        ticketCode = data.code;
         for (const key in valitutTiedot) {
           htmlContent += `<strong>${key}:</strong> ${valitutTiedot[key]}<br>`;
         }
@@ -157,7 +159,7 @@
     console.log(bearerToken);
     console.log(lippuId);
 
-    const url = `https://ticketguru-ticketmaster.rahtiapp.fi/api/tickets/markused/${lippuId}`;
+    const url = `https://ticketguru-ticketmaster.rahtiapp.fi/api/tickets/markused/${ticketCode}`;
 
     fetch(url, {
       method: "PATCH",
