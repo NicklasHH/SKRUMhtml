@@ -144,6 +144,12 @@
         };
         let htmlContent = "";
         ticketCode = data.code;
+        if (data.verified === true) {
+          document.querySelector("#lippu-on button").disabled = true;
+        } else {
+          document.querySelector("#lippu-on button").disabled = false;
+        }
+
         for (const key in valitutTiedot) {
           htmlContent += `<strong>${key}:</strong> ${valitutTiedot[key]}<br>`;
         }
